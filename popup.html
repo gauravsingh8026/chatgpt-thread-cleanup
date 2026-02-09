@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thread Cleanup</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      width: 360px;
+      min-height: 200px;
+      margin: 0;
+      padding: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .notice {
+      padding: 10px;
+      background: #fff8e6;
+      border: 1px solid #e6d9b8;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    button {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      background: #0d6b0d;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { background: #0a5a0a; }
+    button:disabled { background: #888; cursor: not-allowed; }
+    button.secondary {
+      background: #e5e5e5;
+      color: #333;
+    }
+    button.secondary:hover { background: #d0d0d0; }
+    button.btn-archive { background: #b8860b; }
+    button.btn-archive:hover { background: #9a7209; }
+    button.btn-delete { background: #b91c1c; }
+    button.btn-delete:hover { background: #991b1b; }
+    .button-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .loading { margin-top: 12px; color: #666; }
+    .error {
+      margin-top: 12px;
+      padding: 10px;
+      background: #ffe6e6;
+      border: 1px solid #e6b8b8;
+      border-radius: 6px;
+      color: #8b0000;
+      font-size: 13px;
+    }
+    .error-hint {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #fff8e6;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #5c4a00;
+    }
+    .result {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .result h2 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+    .result p { margin: 4px 0; }
+    .result .rec { font-weight: 600; }
+    .result .rec.keep { color: #0d6b0d; }
+    .result .rec.archive { color: #b8860b; }
+    .result .rec.delete { color: #b91c1c; }
+    .result .from-cache { margin: 0 0 8px; font-size: 12px; color: #666; }
+    #result-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>ChatGPT Thread Cleanup</h1>
+  <p class="notice">Open a conversation on chat.openai.com or chatgpt.com, then click Analyze.</p>
+  <button id="analyze" type="button">Analyze this thread</button>
+  <div id="loading" class="loading hidden">Analyzing…</div>
+  <div id="error" class="error hidden"></div>
+  <div id="error-hint" class="error-hint hidden"></div>
+  <div id="result" class="result hidden"></div>
+  <div id="result-actions" class="hidden"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

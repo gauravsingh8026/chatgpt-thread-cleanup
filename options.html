@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChatGPT Thread Cleanup – Options</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      max-width: 480px;
+      margin: 24px auto;
+      padding: 0 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+    h1 { font-size: 18px; margin-bottom: 8px; }
+    p { color: #555; margin: 0 0 16px; }
+    label { display: block; font-weight: 500; margin-bottom: 6px; }
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #0d6b0d;
+      box-shadow: 0 0 0 2px rgba(13, 107, 13, 0.2);
+    }
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.primary {
+      background: #0d6b0d;
+      color: #fff;
+    }
+    button.primary:hover { background: #0a5a0a; }
+    button.secondary {
+      background: #e5e5e5;
+      color: #333;
+    }
+    button.secondary:hover { background: #d0d0d0; }
+    .status {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .status.success { background: #e6f4ea; color: #0d6b0d; }
+    .status.error { background: #fce8e6; color: #b91c1c; }
+    .status.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>ChatGPT Thread Cleanup – Options</h1>
+  <p>Store your OpenAI API key and model here. Saved only on this device (local storage).</p>
+  <form id="options-form">
+    <label for="api-key">OpenAI API key</label>
+    <input type="password" id="api-key" name="apiKey" placeholder="sk-..." autocomplete="off" />
+    <label for="model">Model for analysis</label>
+    <select id="model" name="model">
+      <option value="gpt-4o-mini">gpt-4o-mini (faster, cheaper)</option>
+      <option value="gpt-4o">gpt-4o</option>
+    </select>
+    <div class="buttons">
+      <button type="submit" class="primary">Save</button>
+      <button type="button" id="clear" class="secondary">Clear</button>
+    </div>
+  </form>
+  <div id="status" class="status hidden"></div>
+  <script src="options.js"></script>
+</body>
+</html>
