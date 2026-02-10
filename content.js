@@ -22,9 +22,12 @@
    * OpenAI may change the DOM; update these if the UI changes.
    */
   function findMessageElements() {
+    const PREFIX = '[ChatGPT Thread Cleanup]';
+
     // Strategy 1: data attribute for role (common in ChatGPT)
     const byDataRole = document.querySelectorAll('[data-message-author-role]');
     if (byDataRole.length > 0) {
+      console.log(PREFIX, 'Strategy 1 (data-message-author-role): found', byDataRole.length, 'elements');
       return Array.from(byDataRole).map(el => {
         const role = (el.getAttribute('data-message-author-role') || 'unknown').toLowerCase();
         const content = el.querySelector('[data-message-content]') || el;
@@ -35,6 +38,7 @@
     // Strategy 2: articles (each turn is often an article)
     const articles = document.querySelectorAll('article');
     if (articles.length > 0) {
+      console.log(PREFIX, 'Strategy 2 (article): found', articles.length, 'elements');
       return Array.from(articles).map(article => {
         let role = 'unknown';
         if (article.querySelector('[data-message-author-role="user"]')) role = 'user';
@@ -58,8 +62,12 @@
       const content = g.querySelector('[data-message-content]') || g;
       result.push({ el: g, role, content });
     });
-    if (result.length > 0) return result;
+    if (result.length > 0) {
+      console.log(PREFIX, 'Strategy 3 (class*="group"): found', result.length, 'elements');
+      return result;
+    }
 
+    console.log(PREFIX, 'No strategy matched; no message elements found');
     return [];
   }
 
@@ -81,6 +89,9 @@
       messages.push({ role, text });
     }
 
+    if (messages.length > 0) {
+      console.log('[ChatGPT Thread Cleanup] Extracted', messages.length, 'messages');
+    }
     return messages;
   }
 
