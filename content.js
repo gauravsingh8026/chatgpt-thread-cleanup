@@ -85,25 +85,44 @@
   }
 
   const BADGE_ID = 'chatgpt-thread-cleanup-badge';
+  let badgeThreadId = '';
+  let badgeCheckInterval = null;
+
+  function removeBadge() {
+    const el = document.getElementById(BADGE_ID);
+    if (el) el.remove();
+    if (badgeCheckInterval) {
+      clearInterval(badgeCheckInterval);
+      badgeCheckInterval = null;
+    }
+    badgeThreadId = '';
+  }
 
   /**
    * Inject or update a badge on the page showing score and recommendation (Keep/Archive/Delete).
-   * Colors: Keep = green, Archive = amber, Delete = red.
+   * Position: bottom-right. Removed when thread (pathname) changes.
    */
-  function showBadge(analysis) {
+  function showBadge(analysis, threadId) {
+    const path = (window.location.pathname || '').replace(/\/$/, '');
+    if (threadId && threadId !== path) {
+      removeBadge();
+      return;
+    }
+    badgeThreadId = path;
+
     let el = document.getElementById(BADGE_ID);
     if (!el) {
       el = document.createElement('div');
       el.id = BADGE_ID;
       el.style.cssText = [
-        'position:fixed;top:16px;right:16px;z-index:2147483647;',
+        'position:fixed;bottom:24px;right:24px;z-index:2147483647;',
         'font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;',
-        'padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);',
-        'display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;',
+        'padding:8px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2);',
+        'display:flex;align-items:center;cursor:pointer;user-select:none;',
         'transition:opacity 0.2s;'
       ].join('');
-      el.title = 'Thread Cleanup badge – click to dismiss';
-      el.addEventListener('click', () => el.remove());
+      el.title = 'Thread Cleanup – click to dismiss';
+      el.addEventListener('click', removeBadge);
       document.body.appendChild(el);
     }
     const rec = (analysis.recommendation || 'Keep').toLowerCase();
@@ -117,125 +136,12 @@
     el.style.background = c.bg;
     el.style.color = c.fg;
     el.textContent = `${value}/10 · ${(analysis.recommendation || 'Keep')}`;
-  }
 
-  /**
-   * Try to open the sidebar if it might be collapsed (so the conversation list is visible).
-   */
-  function ensureSidebarOpen() {
-    const toggleSelectors = [
-      'button[aria-label="Open sidebar"]',
-      'button[aria-label="Close sidebar"]',
-      'button[aria-expanded]',
-      '[data-testid="sidebar-toggle"]'
-    ];
-    for (const sel of toggleSelectors) {
-      const btn = document.querySelector(sel);
-      if (!btn) continue;
-      const expanded = btn.getAttribute('aria-expanded');
-      if (expanded === 'false' || expanded === null) {
-        btn.click();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Find the sidebar chat row that matches the current conversation, then its menu (three-dots) button.
-   * Tries multiple strategies: exact path, path in href, then first chat in sidebar.
-   */
-  function findCurrentChatMenuButton() {
-    const path = window.location.pathname || '';
-
-    const roots = [
-      document.querySelector('[aria-label="Chat history"]'),
-      document.querySelector('[aria-label="Conversations"]'),
-      document.querySelector('[data-testid="chat-history"]'),
-      document.querySelector('nav'),
-      document.querySelector('aside'),
-      document.querySelector('[class*="sidebar"]'),
-      document.body
-    ].filter(Boolean);
-
-    const norm = (p) => (p || '').replace(/\/$/, '').split('?')[0];
-    for (const root of roots) {
-      const links = root.querySelectorAll('a[href^="/c/"], a[href^="/g/"]');
-      for (const link of links) {
-        const href = norm(link.getAttribute('href') || '');
-        if (norm(path) !== href) continue;
-        const container = link.closest('li') || link.closest('[role="listitem"]') || link.closest('[class*="group"]') || link.closest('div') || link.parentElement;
-        if (!container) continue;
-        const buttons = container.querySelectorAll('button');
-        for (const btn of buttons) {
-          if (btn.offsetParent !== null) return btn;
-        }
-        if (link.nextElementSibling && link.nextElementSibling.tagName === 'BUTTON') return link.nextElementSibling;
-        if (link.previousElementSibling && link.previousElementSibling.tagName === 'BUTTON') return link.previousElementSibling;
-        const parent = link.parentElement;
-        if (parent) {
-          const siblingBtn = parent.querySelector('button');
-          if (siblingBtn) return siblingBtn;
-        }
-      }
-    }
-
-    const activeLink = document.querySelector('a[aria-current="page"][href^="/c/"], a[aria-current="page"][href^="/g/"], a[href^="/c/"].active, a[href^="/g/"].active');
-    if (activeLink) {
-      const container = activeLink.closest('li') || activeLink.closest('[role="listitem"]') || activeLink.parentElement;
-      const btn = container?.querySelector('button');
-      if (btn) return btn;
-    }
-
-    return null;
-  }
-
-  /**
-   * Open the conversation menu and click the menu item whose text matches (e.g. "Archive" or "Delete").
-   * Returns a Promise that resolves to true if the item was found and clicked.
-   */
-  function openMenuAndClickItem(labelMatch) {
-    return new Promise((resolve) => {
-      ensureSidebarOpen();
-      const menuBtn = findCurrentChatMenuButton();
-      if (!menuBtn) {
-        setTimeout(() => {
-          const retryBtn = findCurrentChatMenuButton();
-          if (retryBtn) {
-            retryBtn.click();
-            waitForMenuAndClick(labelMatch, resolve);
-          } else resolve(false);
-        }, 500);
-        return;
-      }
-      menuBtn.click();
-      waitForMenuAndClick(labelMatch, resolve);
-    });
-  }
-
-  function waitForMenuAndClick(labelMatch, resolve) {
-    const tryFindAndClick = (attempt) => {
-      const menu = document.querySelector('[role="menu"]');
-      const items = menu ? [...menu.querySelectorAll('[role="menuitem"]')] : [];
-      const byRole = items.find((i) => (i.textContent || '').toLowerCase().includes(labelMatch.toLowerCase()));
-      if (byRole) {
-        byRole.click();
-        resolve(true);
-        return;
-      }
-      const allClickables = document.querySelectorAll('[role="menuitem"], [role="option"], button, [role="button"]');
-      for (const el of allClickables) {
-        const text = (el.textContent || '').toLowerCase();
-        if (text.includes(labelMatch.toLowerCase()) && el.offsetParent !== null) {
-          el.click();
-          resolve(true);
-          return;
-        }
-      }
-      if (attempt < 4) setTimeout(() => tryFindAndClick(attempt + 1), 250);
-      else resolve(false);
-    };
-    setTimeout(() => tryFindAndClick(0), 350);
+    if (badgeCheckInterval) clearInterval(badgeCheckInterval);
+    badgeCheckInterval = setInterval(() => {
+      const currentPath = (window.location.pathname || '').replace(/\/$/, '');
+      if (currentPath !== badgeThreadId) removeBadge();
+    }, 1000);
   }
 
   /**
@@ -248,16 +154,8 @@
       return true;
     }
     if (request.type === 'SHOW_BADGE' && request.analysis) {
-      showBadge(request.analysis);
+      showBadge(request.analysis, request.threadId);
       sendResponse({ ok: true });
-      return true;
-    }
-    if (request.type === 'TRIGGER_ARCHIVE') {
-      openMenuAndClickItem('archive').then((ok) => sendResponse({ ok }));
-      return true;
-    }
-    if (request.type === 'TRIGGER_DELETE') {
-      openMenuAndClickItem('delete').then((ok) => sendResponse({ ok }));
       return true;
     }
     sendResponse({ ok: false, error: 'Unknown request type' });

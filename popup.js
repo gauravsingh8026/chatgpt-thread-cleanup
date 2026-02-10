@@ -79,20 +79,6 @@
       copyBtn.textContent = 'Copy result';
       copyBtn.addEventListener('click', () => copyResultToClipboard(analysis));
       resultActionsEl.appendChild(copyBtn);
-      const archiveBtn = document.createElement('button');
-      archiveBtn.type = 'button';
-      archiveBtn.className = 'btn-archive';
-      archiveBtn.textContent = 'Archive';
-      archiveBtn.title = 'Click the Archive option in the conversation menu on the page';
-      archiveBtn.addEventListener('click', () => triggerPageAction('TRIGGER_ARCHIVE', archiveBtn));
-      resultActionsEl.appendChild(archiveBtn);
-      const deleteBtn = document.createElement('button');
-      deleteBtn.type = 'button';
-      deleteBtn.className = 'btn-delete';
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.title = 'Click the Delete option in the conversation menu on the page';
-      deleteBtn.addEventListener('click', () => triggerPageAction('TRIGGER_DELETE', deleteBtn));
-      resultActionsEl.appendChild(deleteBtn);
       if (fromCache) {
         const againBtn = document.createElement('button');
         againBtn.type = 'button';
@@ -109,26 +95,8 @@
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       if (!tab?.id || (!tab.url?.startsWith('https://chat.openai.com/') && !tab.url?.startsWith('https://chatgpt.com/'))) return;
-      chrome.tabs.sendMessage(tab.id, { type: 'SHOW_BADGE', analysis }, () => { if (chrome.runtime.lastError) { /* ignore */ } });
-    });
-  }
-
-  function triggerPageAction(type, buttonEl) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (!tab?.id || (!tab.url?.startsWith('https://chat.openai.com/') && !tab.url?.startsWith('https://chatgpt.com/'))) {
-        if (buttonEl) buttonEl.textContent = 'Open a ChatGPT tab first';
-        return;
-      }
-      const origText = buttonEl?.textContent || '';
-      if (buttonEl) buttonEl.disabled = true;
-      chrome.tabs.sendMessage(tab.id, { type }, (response) => {
-        if (buttonEl) {
-          buttonEl.disabled = false;
-          buttonEl.textContent = (response?.ok) ? 'Done' : 'Not found';
-          setTimeout(() => { buttonEl.textContent = origText; }, 2000);
-        }
-      });
+      const threadId = getThreadIdFromUrl(tab.url);
+      chrome.tabs.sendMessage(tab.id, { type: 'SHOW_BADGE', analysis, threadId }, () => { if (chrome.runtime.lastError) { /* ignore */ } });
     });
   }
 

@@ -19,8 +19,7 @@ Chrome Extension (Manifest v3) that analyzes the currently open ChatGPT conversa
 2. Click the extension icon (or press **Ctrl+Shift+A** / **Cmd+Shift+A** on Mac to analyze and open the popup).
 3. If this thread was analyzed before, the **cached result** is shown with **Copy result** and **Analyze again**. Otherwise click **Analyze this thread**.
 4. The popup shows: Summary, Category, Value (1–10), and Recommendation (Keep / Archive / Delete). Use **Copy result** to paste into notes or a spreadsheet.
-5. A **badge** is injected on the ChatGPT page (top-right): score and action (e.g. `7/10 · Keep`) in green / amber / red. Click the badge to dismiss it.
-6. Use **Archive** or **Delete** in the popup to trigger the same action on the current conversation (opens the conversation menu and clicks Archive or Delete). If the button isn’t found, the popup shows “Not found”.
+5. A **badge** is injected on the ChatGPT page (bottom-right): score and recommendation (e.g. `7/10 · Keep`) in green / amber / red. Click the badge to dismiss. The badge is removed automatically when you switch to a different thread.
 
 ## Files
 
@@ -37,4 +36,4 @@ Chrome Extension (Manifest v3) that analyzes the currently open ChatGPT conversa
 - **API key**: Stored only in your extension (background or options). Do not publish the extension with a key if sharing.
 - **History**: The last 50 analyses are cached by thread (URL). Re-opening the popup on the same conversation shows the cached result; use **Analyze again** to re-run.
 - **Shortcut**: Set or change the keyboard shortcut at `chrome://extensions` → your extension → **Details** → **Keyboard shortcuts**.
-- **DOM changes**: If ChatGPT’s page structure changes, message extraction or the Archive/Delete trigger may fail; update the selectors in `content.js` (e.g. `[aria-label="Chat history"]`, `[role="menu"]`, `[role="menuitem"]`).
+- **DOM changes**: If ChatGPT’s page structure changes, message extraction may fail; update the selectors in `content.js`.
