@@ -16,9 +16,7 @@
     "default_popup": "popup.html",
     "default_title": "Analyze this thread"
   },
-  "options_ui": {
-    "page": "options.html"
-  },
+  "options_page": "options.html",
   "commands": {
     "analyze": {
       "suggested_key": {

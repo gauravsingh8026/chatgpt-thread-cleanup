@@ -9,8 +9,8 @@ Chrome Extension (Manifest v3) that analyzes the currently open ChatGPT conversa
    - Turn on **Developer mode**
    - Click **Load unpacked** and select this folder (`chatgpt-thread-cleanup`)
 
-2. **Add your OpenAI API key (and optional model)**
-   - **Recommended:** Right-click the extension icon → **Options**. Enter your API key, choose a model (e.g. gpt-4o-mini), and click **Save**. Stored locally on this device.
+2. **Add your OpenAI API key and optional personalization**
+   - **Recommended:** Right-click the extension icon → **Options** (opens in a new tab). Enter your API key, choose a model (e.g. gpt-4o-mini), and optionally set **User profile**, **Interested in**, and **Categories** so the analysis uses your context. You can also set a **Custom system prompt** (the built-in prompt is the default; use "Reset to default prompt" to load it). Click **Save**. All stored locally.
    - **Alternatively:** Set `OPENAI_API_KEY` in `background.js`; the options page is used only when that is empty.
 
 ## How to use
@@ -29,7 +29,7 @@ Chrome Extension (Manifest v3) that analyzes the currently open ChatGPT conversa
 | `content.js` | Runs on chat.openai.com and chatgpt.com; extracts visible messages (role + text) from the page |
 | `background.js` | Service worker; receives messages, calls OpenAI API, returns analysis |
 | `popup.html` / `popup.js` | Popup UI; triggers extraction → analysis → display |
-| `options.html` / `options.js` | Options page; API key and model (gpt-4o-mini / gpt-4o) in local storage |
+| `options.html` / `options.js` | Options page; API key, model, personalization (profile, interests, categories), and optional custom system prompt |
 
 ## Notes
 

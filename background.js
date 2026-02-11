@@ -7,19 +7,21 @@
 // ——— API KEY: paste your key here, or leave empty to use the one from storage (options page) ———
 const OPENAI_API_KEY = '';
 
-const ANALYSIS_SYSTEM_PROMPT = `
+const DEFAULT_ANALYSIS_SYSTEM_PROMPT = `
 You evaluate personal ChatGPT conversation threads for long-term usefulness.
 
 User profile:
-- Software developer
-- Interested in product building, writing, startups, and career growth
+{{USER_PROFILE}}
+
+Interested in:
+{{INTERESTS}}
 
 Your task:
 Analyze the conversation and return EXACTLY this JSON (no markdown, no extra text):
 
 {
   "summary": "1–2 precise sentences describing what was discussed and why",
-  "category": "career | writing | project | tech | humor | other",
+  "category": "one of: {{CATEGORIES}}",
   "value": number,
   "confidence": number,
   "recommendation": "Keep | Archive | Delete",
@@ -59,6 +61,34 @@ Constraints:
 - Output valid JSON only
 `;
 
+function getStored(keys) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+  });
+}
+
+async function buildSystemPrompt() {
+  const stored = await getStored([
+    'analysisCustomPrompt',
+    'analysisUserProfile',
+    'analysisInterests',
+    'analysisCategories'
+  ]);
+  const profile = (stored.analysisUserProfile || '').trim() || 'Not specified';
+  const interests = (stored.analysisInterests || '').trim() || 'Not specified';
+  const categories = (stored.analysisCategories || '').trim() || 'career | writing | project | tech | humor | other';
+
+  const replacePlaceholders = (text) =>
+    text
+      .replace(/\{\{USER_PROFILE\}\}/g, profile)
+      .replace(/\{\{INTERESTS\}\}/g, interests)
+      .replace(/\{\{CATEGORIES\}\}/g, categories);
+
+  const customPrompt = (stored.analysisCustomPrompt || '').trim();
+  const basePrompt = customPrompt || DEFAULT_ANALYSIS_SYSTEM_PROMPT;
+  return replacePlaceholders(basePrompt);
+}
+
 
 function getAnalysisUserPrompt(messages) {
   const blob = messages
@@ -77,6 +107,7 @@ async function callOpenAI(messages) {
   }
 
   const model = await getStoredModel();
+  const systemPrompt = await buildSystemPrompt();
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -86,7 +117,7 @@ async function callOpenAI(messages) {
     body: JSON.stringify({
       model,
       messages: [
-        { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: getAnalysisUserPrompt(messages) },
       ],
       temperature: 0.3,
@@ -133,6 +164,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((analysis) => sendResponse({ ok: true, analysis }))
       .catch((err) => sendResponse({ ok: false, error: err.message }));
     return true; // keep channel open for async sendResponse
+  }
+  if (request.type === 'GET_DEFAULT_PROMPT') {
+    sendResponse({ ok: true, prompt: DEFAULT_ANALYSIS_SYSTEM_PROMPT });
+    return false;
   }
   sendResponse({ ok: false, error: 'Invalid request' });
   return false;

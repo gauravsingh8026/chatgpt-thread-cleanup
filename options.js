@@ -1,6 +1,5 @@
 /**
- * Options page: save and load the OpenAI API key in chrome.storage.local.
- * The background script reads this key when OPENAI_API_KEY in background.js is empty.
+ * Options page: API key, model, and analysis personalization (profile, interests, categories, custom prompt).
  */
 
 (function () {
@@ -9,11 +8,22 @@
   const form = document.getElementById('options-form');
   const input = document.getElementById('api-key');
   const modelSelect = document.getElementById('model');
+  const userProfileEl = document.getElementById('user-profile');
+  const interestsEl = document.getElementById('interests');
+  const categoriesEl = document.getElementById('categories');
+  const customPromptEl = document.getElementById('custom-prompt');
+  const resetPromptBtn = document.getElementById('reset-prompt');
   const clearBtn = document.getElementById('clear');
   const statusEl = document.getElementById('status');
 
-  const STORAGE_KEY = 'openaiApiKey';
-  const MODEL_KEY = 'openaiModel';
+  const STORAGE_KEYS = [
+    'openaiApiKey',
+    'openaiModel',
+    'analysisUserProfile',
+    'analysisInterests',
+    'analysisCategories',
+    'analysisCustomPrompt'
+  ];
 
   function showStatus(message, isError) {
     statusEl.textContent = message;
@@ -25,21 +35,31 @@
     statusEl.classList.add('hidden');
   }
 
-  /** Load saved key and model from storage. */
+  /** Load all saved options from storage. */
   function loadSaved() {
-    chrome.storage.local.get([STORAGE_KEY, MODEL_KEY], function (result) {
-      input.value = result[STORAGE_KEY] || '';
-      if (modelSelect) modelSelect.value = result[MODEL_KEY] || 'gpt-4o-mini';
+    chrome.storage.local.get(STORAGE_KEYS, function (result) {
+      input.value = result.openaiApiKey || '';
+      if (modelSelect) modelSelect.value = result.openaiModel || 'gpt-4o-mini';
+      if (userProfileEl) userProfileEl.value = result.analysisUserProfile || '';
+      if (interestsEl) interestsEl.value = result.analysisInterests || '';
+      if (categoriesEl) categoriesEl.value = result.analysisCategories || '';
+      if (customPromptEl) customPromptEl.value = result.analysisCustomPrompt || '';
     });
   }
 
-  /** Save key and model to chrome.storage.local. */
+  /** Save all options to chrome.storage.local. */
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     hideStatus();
-    const key = (input.value || '').trim();
-    const model = modelSelect ? modelSelect.value : 'gpt-4o-mini';
-    chrome.storage.local.set({ [STORAGE_KEY]: key, [MODEL_KEY]: model }, function () {
+    const data = {
+      openaiApiKey: (input.value || '').trim(),
+      openaiModel: modelSelect ? modelSelect.value : 'gpt-4o-mini',
+      analysisUserProfile: userProfileEl ? (userProfileEl.value || '').trim() : '',
+      analysisInterests: interestsEl ? (interestsEl.value || '').trim() : '',
+      analysisCategories: categoriesEl ? (categoriesEl.value || '').trim() : '',
+      analysisCustomPrompt: customPromptEl ? (customPromptEl.value || '').trim() : ''
+    };
+    chrome.storage.local.set(data, function () {
       if (chrome.runtime.lastError) {
         showStatus('Failed to save: ' + chrome.runtime.lastError.message, true);
         return;
@@ -48,11 +68,25 @@
     });
   });
 
-  /** Clear key from storage and input. */
+  /** Reset custom prompt textarea to the extension default (fetched from background). */
+  if (resetPromptBtn && customPromptEl) {
+    resetPromptBtn.addEventListener('click', function () {
+      chrome.runtime.sendMessage({ type: 'GET_DEFAULT_PROMPT' }, function (response) {
+        if (response?.ok && response.prompt) {
+          customPromptEl.value = response.prompt.trim();
+          showStatus('Default prompt loaded. Click Save to use it.', false);
+        } else {
+          showStatus('Could not load default prompt.', true);
+        }
+      });
+    });
+  }
+
+  /** Clear API key only. */
   clearBtn.addEventListener('click', function () {
     hideStatus();
     input.value = '';
-    chrome.storage.local.remove([STORAGE_KEY], function () {
+    chrome.storage.local.remove(['openaiApiKey'], function () {
       showStatus('API key cleared.', false);
     });
   });

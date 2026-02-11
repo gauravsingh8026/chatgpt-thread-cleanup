@@ -39,6 +39,20 @@
       margin-bottom: 16px;
       background: #fff;
     }
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      resize: vertical;
+      min-height: 60px;
+    }
+    textarea.prompt-large { min-height: 200px; }
+    .section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e0e0e0; }
+    .section h2 { font-size: 16px; margin: 0 0 12px; }
     .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
     button {
       padding: 10px 18px;
@@ -71,7 +85,7 @@
 </head>
 <body>
   <h1>ChatGPT Thread Cleanup – Options</h1>
-  <p>Store your OpenAI API key and model here. Saved only on this device (local storage).</p>
+  <p>API key and model. Saved only on this device (local storage).</p>
   <form id="options-form">
     <label for="api-key">OpenAI API key</label>
     <input type="password" id="api-key" name="apiKey" placeholder="sk-..." autocomplete="off" />
@@ -80,9 +94,31 @@
       <option value="gpt-4o-mini">gpt-4o-mini (faster, cheaper)</option>
       <option value="gpt-4o">gpt-4o</option>
     </select>
-    <div class="buttons">
+
+    <div class="section">
+      <h2>Analysis personalization</h2>
+      <p>Optional. Used only when "Custom system prompt" below is empty.</p>
+      <label for="user-profile">User profile</label>
+      <textarea id="user-profile" name="userProfile" placeholder="e.g. Software developer, designer…" rows="2"></textarea>
+      <label for="interests">Interested in</label>
+      <textarea id="interests" name="interests" placeholder="e.g. product building, writing, startups, career growth" rows="2"></textarea>
+      <label for="categories">Categories (for "category" in JSON)</label>
+      <input type="text" id="categories" name="categories" placeholder="career | writing | project | tech | humor | other" />
+    </div>
+
+    <div class="section">
+      <h2>Custom system prompt</h2>
+      <p>Leave empty to use the default prompt (with personalization above). If you set a custom prompt, it is used as-is and the fields above are ignored.</p>
+      <label for="custom-prompt">Full system prompt</label>
+      <textarea id="custom-prompt" name="customPrompt" class="prompt-large" placeholder="Leave empty to use default prompt with personalization…"></textarea>
+      <div class="buttons">
+        <button type="button" id="reset-prompt" class="secondary">Reset to default prompt</button>
+      </div>
+    </div>
+
+    <div class="buttons" style="margin-top: 20px;">
       <button type="submit" class="primary">Save</button>
-      <button type="button" id="clear" class="secondary">Clear</button>
+      <button type="button" id="clear" class="secondary">Clear API key only</button>
     </div>
   </form>
   <div id="status" class="status hidden"></div>
