@@ -55,8 +55,7 @@
     errorHintEl.classList.add('hidden');
     resultEl.classList.remove('hidden');
     analyzeBtn.disabled = false;
-    if (fromCache) analyzeBtn.classList.add('hidden');
-    else analyzeBtn.classList.remove('hidden');
+    analyzeBtn.classList.add('hidden');
 
     const rec = (analysis.recommendation || '').toLowerCase();
     const recClass = rec === 'keep' ? 'keep' : rec === 'archive' ? 'archive' : 'delete';
@@ -79,14 +78,12 @@
       copyBtn.textContent = 'Copy result';
       copyBtn.addEventListener('click', () => copyResultToClipboard(analysis));
       resultActionsEl.appendChild(copyBtn);
-      if (fromCache) {
-        const againBtn = document.createElement('button');
-        againBtn.type = 'button';
-        againBtn.className = 'primary';
-        againBtn.textContent = 'Analyze again';
-        againBtn.addEventListener('click', runAnalysis);
-        resultActionsEl.appendChild(againBtn);
-      }
+      const againBtn = document.createElement('button');
+      againBtn.type = 'button';
+      againBtn.className = 'primary';
+      againBtn.textContent = 'Analyze again';
+      againBtn.addEventListener('click', runAnalysis);
+      resultActionsEl.appendChild(againBtn);
     }
     sendBadgeToPage(analysis);
   }
